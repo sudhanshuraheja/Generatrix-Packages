@@ -91,7 +91,12 @@
 		}
 
 		public function getCliArray() {
-			return $this->cli->getData();
+			$cli_array = $this->cli->getData();
+			$output_array = array();
+			for($i = 1; $i < count($cli_array); $i++) {
+				$output_array[] = $cli_array[$i];
+			}
+			return $output_array;
 		}
 
 		private function bootstrap($argv) {

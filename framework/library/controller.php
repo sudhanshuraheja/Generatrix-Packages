@@ -37,6 +37,24 @@
 			return $p4;
 		}
 
+		public function getP5() {
+			$url = $this->getURL();
+			$p4 = isset($url[4]) ? mysql_real_escape_string($url[4], $this->getDb()->getConnection()) : false;
+			return $p4;
+		}
+
+		public function getP6() {
+			$url = $this->getURL();
+			$p4 = isset($url[5]) ? mysql_real_escape_string($url[5], $this->getDb()->getConnection()) : false;
+			return $p4;
+		}
+
+		public function getP7() {
+			$url = $this->getURL();
+			$p4 = isset($url[6]) ? mysql_real_escape_string($url[6], $this->getDb()->getConnection()) : false;
+			return $p4;
+		}
+
 		public function getUploadedFile($tag, $where = '/app/cache/uploads/') {
 
 			$return = array('error' => false, 'path' => false, 'name' => false);

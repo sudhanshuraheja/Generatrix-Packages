@@ -56,8 +56,14 @@
 		}
 
 		public function getUploadedFile($tag, $where = '/app/cache/uploads/') {
-
 			$return = array('error' => false, 'path' => false, 'name' => false);
+
+			$allowed = explode(',', $allowed);
+			for($i = 0; $i < count($allowed); $i++) {
+				$allowed[$i] = strtolower(trim($allowed[$i]));
+			}
+
+			$where = ($where == '') ? '/app/cache/uploads/' : $where;
 
 			if(isset($_FILES[$tag]['name']) && ($_FILES[$tag]['name'] != '')) {
 				$image = $_FILES[$tag];
@@ -74,19 +80,26 @@
 					if(count($dots) == 1) {
 						$return['error'] = 'Your filename does not have an extension';
 					} else {
-						$extension = $dots[count($dots) - 1];
-						unset($dots[count($dots) - 1]);
-						$orig_file_name = implode('.', $dots);
-						$new_name = sanitize(trim($orig_file_name)) . '_' . md5(time() . $orig_name) . '.' . $extension;
-						while(file_exists(path($where . $new_name))) {
-							$new_name = (time() % 100) . $new_name;
+						$extension = strtolower($dots[count($dots) - 1]);
+						if(count($allowed) > 0) {
+							if(!in_array($extension, $allowed)) {
+								$return['error'] = 'You can only upload files with filetype ' . implode(', ', $allowed);
+							}
 						}
+						if($return['error'] == '') {
+							unset($dots[count($dots) - 1]);
+							$orig_file_name = implode('.', $dots);
+							$new_name = sanitize(trim($orig_file_name)) . '_' . md5(time() . $orig_name) . '.' . $extension;
+							while(file_exists(path($where . $new_name))) {
+								$new_name = (time() % 100) . $new_name;
+							}
 
-						if(!move_uploaded_file($tmp_name, path($where . $new_name))) {
-							$return['error'] = 'The file could not be uploaded. Please try again.';
-						} else {
-							$return['path'] = $where . $new_name;
-							$return['name'] = $orig_name;
+							if(!move_uploaded_file($tmp_name, path($where . $new_name))) {
+								$return['error'] = 'The file could not be uploaded. Please try again.';
+							} else {
+								$return['path'] = $where . $new_name;
+								$return['name'] = $orig_name;
+							}
 						}
 					}
 				}

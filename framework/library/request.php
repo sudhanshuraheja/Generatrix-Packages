@@ -2,6 +2,8 @@
 
   // A class to handle the request
 
+	require_once(DISK_ROOT . '/framework/library/assoclist.php');
+
   class Request extends AssocList {
 
     public function __construct() {

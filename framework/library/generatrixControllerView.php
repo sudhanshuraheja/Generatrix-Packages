@@ -23,9 +23,9 @@
 
 			// Get the name of the required page
 			$cli_array = $this->getGeneratrix()->getCliArray();
-			if(isset($cli_array[3])) {
+			if(isset($cli_array[2])) {
 
-				$page_name = $cli_array[3];
+				$page_name = $cli_array[2];
 
 				$not_allowed = array('generatrix');
 

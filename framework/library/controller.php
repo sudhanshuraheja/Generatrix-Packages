@@ -178,14 +178,8 @@
 			return $this->getGeneratrix()->getRequestArray();
 		}
 
-		public function isHtml($value = '') {
-			if($value === '') {
-				// Getter
-				return $this->is_html;
-			} else {
-				// Setter
-				$this->is_html = $value;
-			}
+		public function isHtml($value = true) {
+			$this->is_html = $value;
 		}
 	}
 

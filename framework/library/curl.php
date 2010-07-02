@@ -32,9 +32,9 @@
 			$this->callback = $func_name;
 		}
 
-		private function doRequest($method, $url, $vars) {
+		private function doRequest($method, $url, $vars, $header = 1) {
 			curl_setopt($this->connection, CURLOPT_URL, $url);
-			curl_setopt($this->connection, CURLOPT_HEADER, 1);
+			curl_setopt($this->connection, CURLOPT_HEADER, $header);
 			curl_setopt($this->connection, CURLOPT_USERAGENT,$this->user_agent);
 
 			if($this->secure) {
@@ -61,12 +61,12 @@
 			$this->secure = true;
 		}
 
-		public function get($url) {
-			return $this->doRequest('GET', $url, 'NULL');
+		public function get($url, $header = 1) {
+			return $this->doRequest('GET', $url, 'NULL', $header);
 		}
 
-		public function post($url, $vars) {
-			return $this->doRequest('POST', $url, $vars);
+		public function post($url, $vars, $header = 1) {
+			return $this->doRequest('POST', $url, $vars, $header);
 		}
 
 		public function setUserAgent($string) {

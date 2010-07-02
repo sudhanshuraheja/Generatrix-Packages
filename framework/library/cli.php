@@ -25,8 +25,9 @@
             $this->addParameter('p' . ($i - 3), $value[$i]);
         }
       }
-      // If $_SERVER varaible is not set, the request is coming via CLI
-      if(!isset($_SERVER['HTTP_USER_AGENT']))
+
+			// if $_SERVER['argc'] is greater than 0, it's CLI
+      if(isset($_SERVER['argc']) && ($_SERVER['argc'] > 0))
         $this->addParameter('enabled', true);
     }
 

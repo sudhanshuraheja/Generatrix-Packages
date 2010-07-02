@@ -8,6 +8,9 @@
 	require_once(DISK_ROOT . 'framework/library/view.php');
 
 	class generatrixController extends Controller {
+
+		private $server = 'http://localhost/Generatrix-Packages';
+
 		private function isCli() {
 			$cli_array = $this->getGeneratrix()->getCliArray();
 			return (isset($cli_array[0])) ? true : false;
@@ -133,6 +136,56 @@
 			$dump = implode("\n", $output);
 			display($dump);
 		}
+
+		public function packages() {
+			if(!$this->isCli())
+				return;
+
+			$cli_array = $this->getGeneratrix()->getCliArray();
+			$cli_2 = isset($cli_array[2]) ? $cli_array[2] : false;
+			$cli_3 = isset($cli_array[3]) ? $cli_array[3] : false;
+			if($cli_2) {
+				$curl = new Curl();
+
+				switch($cli_2) {
+					// ./generatrix packages view
+					case 'view':
+						$data = $curl->get($this->server . '/packages', false);
+						$packages = json_decode($data, true);
+						foreach($packages as $package) {
+							$user = $package['user'];
+							$repo = $package['repo'];
+							$desc = $package['description'];
+	
+							echo "a   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
+						}
+						break;
+					// ./generatrix packages anything_random
+					case 'search':
+						if(!$cli_3) {
+							display('Please enter a search term');
+							break;
+						}
+
+						$data = $curl->get($this->server . '/packages/search/' . urlencode($cli_3), false);
+						$packages = json_decode($data, true);
+						foreach($packages as $package) {
+							$user = $package['user'];
+							$repo = $package['repo'];
+							$desc = $package['description'];
+	
+							echo "a   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
+						}
+						break;
+					default:
+						display($cli_2 . ' is not a valid parameter');
+						break;
+				}
+			} else {
+				display("Please mention a paramter after packages, or type ./generatrix help");
+			}
+		}
+
 	}
 
 	//
@@ -159,6 +212,7 @@ Welcome to the Generatrix help. You can use any of the following options
 		public function prepareModel() { }
 		public function exportDb() { }
 		public function importDb() { }
+		public function packages() { }
 	}
 
 ?>

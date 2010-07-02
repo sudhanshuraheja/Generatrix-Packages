@@ -42,6 +42,10 @@
 
 		}
 
+		public function latest() {
+
+		}
+
 	}
 
 ?>

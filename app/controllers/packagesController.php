@@ -76,6 +76,53 @@
 			echo $this->sendData($package_data);
 		}
 
+		public function latest() {
+			$user_repo = $this->getP3();
+
+			if(!$user_repo) {
+				echo json_encode(array('error' => 'Please enter the name of the package as vercingetorix:test'));
+			} else {
+				$colons = explode(':', $user_repo);
+				$user = $colons[0];
+				$repo = isset($colons[1]) ? $colons[1] : false;
+
+				if(!$repo || ($user == '') || ($repo == '')) {
+					echo json_encode(array('error' => 'Please enter the name of the package as vercingetorix:test'));
+				} else {
+					$packages = new packages($this->getDb());
+
+					$package = $packages->select('*', 'WHERE user="' . $user . '" AND repo="' . $repo . '"');
+					if(!isset($package[0]['id'])) {
+						echo json_encode(array('error' => 'The package does not exist'));
+					} else {
+						$url = 'http://github.com/api/v2/json/repos/show/' . $user . '/' . $repo . '/tags';
+
+						$cache = new Cache();
+						$data = $cache->get($url, 43200);
+						if(!$data) {
+							$data = file_get_contents($url);
+							$cache->set($url, $data);
+						}
+
+						$data = json_decode($data, true);
+						$tags_list = isset($data['tags']) ? $data['tags'] : array();
+						$tags = array_keys($tags_list);
+
+						$latest = false;
+						if(count($tags) > 0) {
+							$latest = $tags[count($tags) - 1];
+						}
+
+						if(!$latest) {
+							echo json_encode(array('error' => 'There are no releases for this package'));
+						} else {
+							echo json_encode(array('error' => '', 'url' => 'http://github.com/' . $user . '/' . $repo . '/tarball/' . $latest));
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 ?>

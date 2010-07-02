@@ -186,6 +186,22 @@
 			}
 		}
 
+		public function install() {
+			if(!$this->isCli())
+				return;
+
+			$cli_array = $this->getGeneratrix()->getCliArray();
+			$cli_2 = isset($cli_array[2]) ? $cli_array[2] : false;
+			$cli_3 = isset($cli_array[3]) ? $cli_array[3] : false;
+
+			if(!$cli_2) {
+				display("Please enter the name of the package to install eg. ./generatrix install vercingetorix:test");
+			} else {
+
+			}
+
+		}
+
 	}
 
 	//
@@ -194,18 +210,15 @@
 
 	class generatrixView extends View {
 		public function base() {
-			display("
------------------------------------------------------------------------------------------------------------------------
-Welcome to the Generatrix help. You can use any of the following options
------------------------------------------------------------------------------------------------------------------------
-1. ./generatrix                          (to show this help screen)
-2. ./generatrix help                     (to show this help screen)
-3. ./generatrix addPage test             (to add a new controller testController and view testView with base functions)
-4. ./generatrix prepareModel             (to create the model file for use)
-5. ./generatrix exportDb                 (to export the complete database)
-6. ./generatrix importDb								 (to import the exported database)
------------------------------------------------------------------------------------------------------------------------
-			");
+			display("The most commonly used functions are:
+
+  help                     - shows this help screen
+  addPage test             - adds a new controller testController and view testView with base functions
+  prepareModel             - creates the model file based on your database structure
+  exportDb                 - exports the complete database
+  importDb                 - imports the exported database
+  packages                 - gets a list of all available packages on github.com
+  packages search test     - searches for a particular package on github.com");
 		}
 		public function help() { $this->base(); } 
 		public function addPage() { }
@@ -213,6 +226,7 @@ Welcome to the Generatrix help. You can use any of the following options
 		public function exportDb() { }
 		public function importDb() { }
 		public function packages() { }
+		public function install() { }
 	}
 
 ?>

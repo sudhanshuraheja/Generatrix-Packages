@@ -21,7 +21,11 @@
 	function display_error($message, $file = '', $line = '') { display_message($message, $file, $line, 'error'); } 
 	function display_system($message, $file = '', $line = '') { display_message('SYSTEM: ' . $message, $file, $line, 'system'); }
 	function display_404 ($message, $file = '', $line = '') { 
-		echo "<div style='width: 600px; margin: 150px auto; text-align: center; background-color: #F7F7F7; border: 10px solid #EEEEEE; padding: 40px 0px; font-family: Georgia; Arial, sans-serif;'>This page does not exist</div>";
+		if(isset($_SERVER['argc']) && ($_SERVER['argc'] > 0)) {
+			echo "This page does not exist\n";
+		} else {
+			echo "<div style='width: 600px; margin: 150px auto; text-align: center; background-color: #F7F7F7; border: 10px solid #EEEEEE; padding: 40px 0px; font-family: Georgia; Arial, sans-serif;'>This page does not exist</div>";
+		}
 	}
 
 	function add_file_and_line($file, $line) {
@@ -31,7 +35,7 @@
 
 	// This displays an error in php, shows up in red
 	function display_message($message, $file, $line, $level, $dump = false) {
-		$using_cli = (isset($_SERVER['HTTP_USER_AGENT'])) ? false : true;
+		$using_cli = (isset($_SERVER['argc']) && ($_SERVER['argc'] > 0)) ? true : false;
 
 		display_message_start($using_cli, $level);
 		display_message_echo($message, $dump, $file, $line);
@@ -58,7 +62,7 @@
 			case 'normal': $background_color = '#000000'; $tag = 'pre'; break;
 			default: $background_color = '#F2F2F2'; break;
 		}
-		$output = $using_cli ? '' : "<" . $tag . " style='" . create_css($background_color) . "'>";
+		$output = $using_cli ? " * * *  " : "<" . $tag . " style='" . create_css($background_color) . "'>";
 		echo $output;
 	}
 
@@ -69,7 +73,7 @@
 			case 'normal': $tag = 'pre'; break;
 			default: $tag = 'div'; break;
 		}
-		$output = $using_cli ? "\n\n" : "</" . $tag . ">";
+		$output = $using_cli ? "\n" : "</" . $tag . ">";
 		echo $output;
 	}
 

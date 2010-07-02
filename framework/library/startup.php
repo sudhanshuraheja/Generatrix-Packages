@@ -35,16 +35,16 @@
 
 	// This displays an error in php, shows up in red
 	function display_message($message, $file, $line, $level, $dump = false) {
-		$output = '';
-
 		$using_cli = (isset($_SERVER['argc']) && ($_SERVER['argc'] > 0)) ? true : false;
 
 		$background_color = '#000000';
 		if($level == 'error') $background_color = '#D02733';
 		if($level == 'warning') $background_color = '#FF8110';
 		
-		$output .= $using_cli ? "\n" : "<pre style='margin: 2px; padding: 8px 16px; font-size: 12px; border: 1px solid #444444; color: #FFFFFF; font-family: Arial, sans-serif; text-align: left; background-color: " . $background_color . ";'>";
+		$output = $using_cli ? "\n" : "<pre style='margin: 2px; padding: 8px 16px; font-size: 12px; border: 1px solid #444444; color: #FFFFFF; font-family: Arial, sans-serif; text-align: left; background-color: " . $background_color . ";'>";
+		echo $output;
 
+		$output = '';
 		if($dump && is_array($message)) {
 			var_dump($message);
 			$output .= add_file_and_line($file, $line, true);

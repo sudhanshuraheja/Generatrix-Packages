@@ -194,10 +194,31 @@
 			$cli_2 = isset($cli_array[2]) ? $cli_array[2] : false;
 			$cli_3 = isset($cli_array[3]) ? $cli_array[3] : false;
 
+			$curl = new Curl();
+
 			if(!$cli_2) {
 				display("Please enter the name of the package to install eg. ./generatrix install vercingetorix:test");
 			} else {
 
+				$colons = explode(':', $cli_2);
+				$user = $colons[0];
+				$repo = isset($colons[1]) ? $colons[1] : false;
+
+				if(!$repo || ($user == '') || ($repo == '')) {
+					display("Please enter the name of the package to install as vercingetorix:test");
+				} else {
+					$json = $curl->get($this->server . '/packages/latest/' . $cli_2, false);
+					$data = json_decode($json, true);
+					if(isset($data['error']) && ($data['error'] == '')) {
+						display($data['url']);
+					} else {
+						if(isset($data['error'])) {
+							display($data['error']);
+						} else {
+							display('Did not get a response from the server. Please try again later');
+						}
+					}
+				}
 			}
 
 		}

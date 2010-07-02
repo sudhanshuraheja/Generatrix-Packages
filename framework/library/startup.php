@@ -22,7 +22,7 @@
 	function display_system($message, $file = '', $line = '') { display_message('SYSTEM: ' . $message, $file, $line, 'system'); }
 	function display_404 ($message, $file = '', $line = '') { 
 		if(isset($_SERVER['argc']) && ($_SERVER['argc'] > 0)) {
-			echo "This page does not exist\n";
+			display("This page does not exist");
 		} else {
 			echo "<div style='width: 600px; margin: 150px auto; text-align: center; background-color: #F7F7F7; border: 10px solid #EEEEEE; padding: 40px 0px; font-family: Georgia; Arial, sans-serif;'>This page does not exist</div>";
 		}
@@ -35,66 +35,26 @@
 
 	// This displays an error in php, shows up in red
 	function display_message($message, $file, $line, $level, $dump = false) {
+		$output = '';
+
 		$using_cli = (isset($_SERVER['argc']) && ($_SERVER['argc'] > 0)) ? true : false;
 
-		display_message_start($using_cli, $level);
-		display_message_echo($message, $dump, $file, $line);
-		display_message_end($using_cli, $level);
-	}
+		$background_color = '#000000';
+		if($level == 'error') $background_color = '#D02733';
+		if($level == 'warning') $background_color = '#FF8110';
+		
+		$output .= $using_cli ? "\n" : "<pre style='margin: 2px; padding: 8px 16px; font-size: 12px; border: 1px solid #444444; color: #FFFFFF; font-family: Arial, sans-serif; text-align: left; background-color: " . $background_color . ";'>";
 
-	function display_message_echo($message, $dump, $file, $line) {
 		if($dump && is_array($message)) {
 			var_dump($message);
-			echo add_file_and_line($file, $line, true);
+			$output .= add_file_and_line($file, $line, true);
 		} else {
-			echo $message . add_file_and_line($file, $line);
+			$output .= ($message . add_file_and_line($file, $line));
 		}
-	}
 
-	// Helper functions for display_error
-	function display_message_start($using_cli, $level) {
-		$background_color = '';
-		$tag = '';
-		switch($level) {
-			case 'error': $background_color = '#D02733'; $tag = 'div'; break;
-			case 'warning': $background_color = '#FF8110'; $tag = 'div'; break;
-			case 'system': $background_color = '#000000'; $tag = 'div'; break;
-			case 'normal': $background_color = '#000000'; $tag = 'pre'; break;
-			default: $background_color = '#F2F2F2'; break;
-		}
-		$output = $using_cli ? " * * *  " : "<" . $tag . " style='" . create_css($background_color) . "'>";
+		$output .= $using_cli ? "\n\n" : "</pre>";
 		echo $output;
 	}
-
-	// Helper function for display_error
-	function display_message_end($using_cli, $level) {
-		$tag = '';
-		switch($level) {
-			case 'normal': $tag = 'pre'; break;
-			default: $tag = 'div'; break;
-		}
-		$output = $using_cli ? "\n" : "</" . $tag . ">";
-		echo $output;
-	}
-
-	function create_css($background_color) {
-		$css = array(
-			'margin' => '2px',
-			'padding' => '8px 16px',
-			'font-size' => '12px',
-			'background-color' => $background_color,
-			'border' => '1px solid #444444',
-			'color' => '#FFFFFF',
-			'font-family' => 'arial, sans-serif',
-			'text-align' => 'left'
-		);
-		$string = '';
-		foreach($css as $key => $value) {
-			$string .= $key . ': ' . $value . ';';
-		}
-		return $string;
-	}
-
 
 	// Adds a DTD to the page by default
 	function addDTD($type = null) {

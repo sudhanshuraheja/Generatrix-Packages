@@ -6,6 +6,7 @@
 				"id" => "int",
 				"user" => "varchar_128",
 				"repo" => "varchar_128",
+				"description" => "varchar_2048",
 				"is_approved" => "int",
 				"created" => "int",
 				"updated" => "int"

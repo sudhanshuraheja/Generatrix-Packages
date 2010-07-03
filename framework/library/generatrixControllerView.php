@@ -213,6 +213,23 @@
 						$url = $data['url'];
 						$version = $data['version'];
 
+						$packages_list = false;
+						if(file_exists(path('/app/cache/packages.list')) && !is_dir(path('/app/cache/packages.list'))) {
+							$packages_data = file_get_contents(path('/app/cache/packages.list'));
+							$packages_list = unserialize($packages_data);
+						}
+
+						$user_repo = $user . ':' . $repo;
+
+						if(
+							isset($packages_list[$user_repo][$version]) &&
+							(count($packages_list[$user_repo][$version]) > 0) &&
+							$this->verifyFiles($packages_list[$user_repo][$version])
+						) {
+							display('This package has already been installed');
+							return;
+						}
+
 						display('Downloading package from url : ' . $url);
 
 						$download_file_name = 'app/packages/' . $user . '--' . $repo . '--' . $version . '.tar.gz';
@@ -244,9 +261,16 @@
 								}
 							}
 						}
-						rename(path('/app/packages/' . $folder_name), path('/app/packages/' . $user . '--' . $repo));
-						display($files);
-						
+						if(!file_exists(path('/app/packages/' . $user . '--' . $repo))) {
+							rename(path('/app/packages/' . $folder_name), path('/app/packages/' . $user . '--' . $repo));
+						} else {
+							display('The package has already been installed');
+							return;
+						}
+
+						$packages_list[$user_repo][$version] = $files;
+						file_put_contents(path('/app/cache/packages.list'), serialize($packages_list));
+
 					} else {
 						if(isset($data['error'])) {
 							display($data['error']);
@@ -257,6 +281,23 @@
 				}
 			}
 
+		}
+
+		public function verifyFiles($list) {
+			$return = true;
+			foreach($list as $item => $size) {
+				if(file_exists(path('/app/packages/' . $item)) && (filesize(path('/app/packages/' . $item)) == $size)) {
+					
+				} else {
+					if(($size == 0) && is_dir(path('/app/packages/' . $item))) {
+
+					} else {
+						$return = false;
+						display('The filesize of app/packages/' . $item . ' does not match');
+					}
+				}
+			}
+			return $return;
 		}
 
 

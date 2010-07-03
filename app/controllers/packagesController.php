@@ -116,7 +116,7 @@
 						if(!$latest) {
 							echo json_encode(array('error' => 'There are no releases for this package'));
 						} else {
-							echo json_encode(array('error' => '', 'url' => 'http://github.com/' . $user . '/' . $repo . '/tarball/' . $latest));
+							echo json_encode(array('error' => '', 'url' => 'http://github.com/' . $user . '/' . $repo . '/tarball/' . $latest, 'user' => $user, 'repo' => $repo, 'version' => $latest));
 						}
 					}
 				}

@@ -41,7 +41,7 @@
 		if($level == 'error') $background_color = '#D02733';
 		if($level == 'warning') $background_color = '#FF8110';
 		
-		$output = $using_cli ? "\n" : "<pre style='margin: 2px; padding: 8px 16px; font-size: 12px; border: 1px solid #444444; color: #FFFFFF; font-family: Arial, sans-serif; text-align: left; background-color: " . $background_color . ";'>";
+		$output = $using_cli ? "" : "<pre style='margin: 2px; padding: 8px 16px; font-size: 12px; border: 1px solid #444444; color: #FFFFFF; font-family: Arial, sans-serif; text-align: left; background-color: " . $background_color . ";'>";
 		echo $output;
 
 		$output = '';
@@ -52,7 +52,7 @@
 			$output .= ($message . add_file_and_line($file, $line));
 		}
 
-		$output .= $using_cli ? "\n\n" : "</pre>";
+		$output .= $using_cli ? "\n" : "</pre>";
 		echo $output;
 	}
 

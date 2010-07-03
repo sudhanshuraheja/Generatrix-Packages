@@ -210,7 +210,43 @@
 					$json = $curl->get($this->server . '/packages/latest/' . $cli_2, false);
 					$data = json_decode($json, true);
 					if(isset($data['error']) && ($data['error'] == '')) {
-						display($data['url']);
+						$url = $data['url'];
+						$version = $data['version'];
+
+						display('Downloading package from url : ' . $url);
+
+						$download_file_name = 'app/packages/' . $user . '--' . $repo . '--' . $version . '.tar.gz';
+						$wget_cmd = 'wget -nv ' . $url . ' -O ' . $download_file_name;
+						$wget_output = '';
+						if(file_exists(path('/' . $download_file_name)) && !is_dir(path('/' . $download_file_name))) {
+							display('File already exists in cache');
+						} else {
+							$wget_output = shell_exec($wget_cmd);
+						}
+
+						$curr_dir = getcwd();
+						chdir(path('/app/packages'));
+
+						$tar_cmd = 'tar xzvf ' . $user . '--' . $repo . '--' . $version . '.tar.gz';
+						$tar_output = shell_exec($tar_cmd);
+
+						chdir($curr_dir);
+
+						$lines = explode("\n", $tar_output);
+
+						$files = array();
+						$folder_name = isset($lines[0]) ? $lines[0] : false;
+						if($folder_name && ($folder_name != '')) {
+							foreach($lines as $line) {
+								$changed_file_name = str_replace($folder_name, $user . '--' . $repo . '/', $line);
+								if($changed_file_name != '') {
+									$files[$changed_file_name] = is_dir(path('/app/packages/' . $line)) ? 0 : filesize(path('/app/packages/' . $line));
+								}
+							}
+						}
+						rename(path('/app/packages/' . $folder_name), path('/app/packages/' . $user . '--' . $repo));
+						display($files);
+						
 					} else {
 						if(isset($data['error'])) {
 							display($data['error']);
@@ -223,6 +259,7 @@
 
 		}
 
+
 	}
 
 	//
@@ -231,7 +268,8 @@
 
 	class generatrixView extends View {
 		public function base() {
-			display("The most commonly used functions are:
+			display("
+The most commonly used functions are:
 
   help                     - shows this help screen
   addPage test             - adds a new controller testController and view testView with base functions
@@ -239,7 +277,8 @@
   exportDb                 - exports the complete database
   importDb                 - imports the exported database
   packages                 - gets a list of all available packages on github.com
-  packages search test     - searches for a particular package on github.com");
+  packages search test     - searches for a particular package on github.com
+			");
 		}
 		public function help() { $this->base(); } 
 		public function addPage() { }

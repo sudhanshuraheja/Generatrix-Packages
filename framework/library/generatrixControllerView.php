@@ -157,7 +157,11 @@
 							$repo = $package['repo'];
 							$desc = $package['description'];
 	
-							echo "a   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
+							$packages_data = file_get_contents(path('/app/cache/packages.list'));
+							$packages_list = unserialize($packages_data);
+
+							echo (isset($packages_list[$user . ':' . $repo])) ? 'i' : 'a';
+							echo "   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
 						}
 						break;
 					// ./generatrix packages anything_random
@@ -173,8 +177,12 @@
 							$user = $package['user'];
 							$repo = $package['repo'];
 							$desc = $package['description'];
-	
-							echo "a   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
+
+							$packages_data = file_get_contents(path('/app/cache/packages.list'));
+							$packages_list = unserialize($packages_data);
+
+							echo (isset($packages_list[$user . ':' . $repo])) ? 'i' : 'a';
+							echo "   " . str_pad($user . ':' . $repo, 40) . ' - ' . substr($desc, 0, 80) . "\n";
 						}
 						break;
 					default:
@@ -197,7 +205,7 @@
 			$curl = new Curl();
 
 			if(!$cli_2) {
-				display("Please enter the name of the package to install eg. ./generatrix install vercingetorix:test");
+				display(" - Please enter the name of the package to install eg. ./generatrix install vercingetorix:test");
 			} else {
 
 				$colons = explode(':', $cli_2);
@@ -205,7 +213,7 @@
 				$repo = isset($colons[1]) ? $colons[1] : false;
 
 				if(!$repo || ($user == '') || ($repo == '')) {
-					display("Please enter the name of the package to install as vercingetorix:test");
+					display(" - Please enter the name of the package to install as vercingetorix:test");
 				} else {
 					$json = $curl->get($this->server . '/packages/latest/' . $cli_2, false);
 					$data = json_decode($json, true);
@@ -213,22 +221,43 @@
 						$url = $data['url'];
 						$version = $data['version'];
 
-						display('Downloading package from url : ' . $url);
+						$packages_list = false;
+						display(' + Getting list of installed packages');
+						if(file_exists(path('/app/cache/packages.list')) && !is_dir(path('/app/cache/packages.list'))) {
+							$packages_data = file_get_contents(path('/app/cache/packages.list'));
+							$packages_list = unserialize($packages_data);
+						}
+
+						$user_repo = $user . ':' . $repo;
+
+						if(
+							isset($packages_list[$user_repo][$version]) &&
+							(count($packages_list[$user_repo][$version]) > 0) &&
+							$this->verifyFiles($packages_list[$user_repo][$version])
+						) {
+							display(' - This package has already been installed');
+							return;
+						}
 
 						$download_file_name = 'app/packages/' . $user . '--' . $repo . '--' . $version . '.tar.gz';
 						$wget_cmd = 'wget -nv ' . $url . ' -O ' . $download_file_name;
 						$wget_output = '';
 						if(file_exists(path('/' . $download_file_name)) && !is_dir(path('/' . $download_file_name))) {
-							display('File already exists in cache');
+							display(' - Package has already been downloaded');
 						} else {
+							display(' + Downloading package from url : ' . $url);
 							$wget_output = shell_exec($wget_cmd);
 						}
 
 						$curr_dir = getcwd();
 						chdir(path('/app/packages'));
 
+						shell_exec('rm -rf ' . $user . '--' . $repo);
+						display(' + Removing old package if it still exists');
+
 						$tar_cmd = 'tar xzvf ' . $user . '--' . $repo . '--' . $version . '.tar.gz';
 						$tar_output = shell_exec($tar_cmd);
+						display(' + Unzipping downloaded package');
 
 						chdir($curr_dir);
 
@@ -244,19 +273,88 @@
 								}
 							}
 						}
-						rename(path('/app/packages/' . $folder_name), path('/app/packages/' . $user . '--' . $repo));
-						display($files);
-						
+						if(!file_exists(path('/app/packages/' . $user . '--' . $repo))) {
+							rename(path('/app/packages/' . $folder_name), path('/app/packages/' . $user . '--' . $repo));
+							display(' + The package has been successfully installed');
+						} else {
+							display(' - The package has already been installed');
+							return;
+						}
+
+						$packages_list[$user_repo][$version] = $files;
+						file_put_contents(path('/app/cache/packages.list'), serialize($packages_list));
+						display(' + Updated the list of installed packages');
+
 					} else {
 						if(isset($data['error'])) {
-							display($data['error']);
+							display(' - ' . $data['error']);
 						} else {
-							display('Did not get a response from the server. Please try again later');
+							display(' - Did not get a response from the server. Please try again later');
 						}
 					}
 				}
 			}
 
+		}
+
+		public function verifyFiles($list) {
+			$return = true;
+			foreach($list as $item => $size) {
+				if(file_exists(path('/app/packages/' . $item)) && (filesize(path('/app/packages/' . $item)) == $size)) {
+					
+				} else {
+					if(($size == 0) && is_dir(path('/app/packages/' . $item))) {
+
+					} else {
+						$return = false;
+						display(' - The filesize of app/packages/' . $item . ' does not match');
+					}
+				}
+			}
+			return $return;
+		}
+
+		public function remove() {
+			if(!$this->isCli())
+				return;
+
+			$cli_array = $this->getGeneratrix()->getCliArray();
+			$cli_2 = isset($cli_array[2]) ? $cli_array[2] : false;
+			$cli_3 = isset($cli_array[3]) ? $cli_array[3] : false;
+
+			$curl = new Curl();
+
+			if(!$cli_2) {
+				display(" - Please enter the name of the package to remove eg. ./generatrix remove vercingetorix:test");
+			} else {
+
+				$colons = explode(':', $cli_2);
+				$user = $colons[0];
+				$repo = isset($colons[1]) ? $colons[1] : false;
+
+				if(!$repo || ($user == '') || ($repo == '')) {
+					display(" - Please enter the name of the package to remove as vercingetorix:test");
+				} else {
+					$packages_list = false;
+					display(' + Getting list of installed packages');
+					if(file_exists(path('/app/cache/packages.list')) && !is_dir(path('/app/cache/packages.list'))) {
+						$packages_data = file_get_contents(path('/app/cache/packages.list'));
+						$packages_list = unserialize($packages_data);
+					}
+
+					if(isset($packages_list[$user . ':' . $repo])) {
+						unset($packages_list[$user . ':' . $repo]);
+						array_values($packages_list);
+
+						shell_exec('rm -rf app/packages/' . $user . '--' . $repo);
+						shell_exec('rm -rf app/packages/' . $user . '--' . $repo .'--*.tar.gz');
+						file_put_contents(path('/app/cache/packages.list'), serialize($packages_list));
+						display(' + The package has been successfully removed');
+					} else {
+						display(' - This package has not been installed');
+					}
+				}
+			}
 		}
 
 
@@ -271,13 +369,16 @@
 			display("
 The most commonly used functions are:
 
-  help                     - shows this help screen
-  addPage test             - adds a new controller testController and view testView with base functions
-  prepareModel             - creates the model file based on your database structure
-  exportDb                 - exports the complete database
-  importDb                 - imports the exported database
-  packages                 - gets a list of all available packages on github.com
-  packages search test     - searches for a particular package on github.com
+  help                          - shows this help screen
+  addPage test                  - adds a new controller testController and view testView with base functions
+  prepareModel                  - creates the model file based on your database structure
+  exportDb                      - exports the complete database
+  importDb                      - imports the exported database
+  packages view                 - gets a list of all available packages on github.com
+  packages details user:repo    - gets a list of all available packages on github.com
+  packages search test          - searches for a particular package on github.com
+	install user:repo							- installs the latest tagged version from github.com
+	remove user:repo							- removes the latest version of the repo from your machine
 			");
 		}
 		public function help() { $this->base(); } 
@@ -287,6 +388,7 @@ The most commonly used functions are:
 		public function importDb() { }
 		public function packages() { }
 		public function install() { }
+		public function remove() { }
 	}
 
 ?>

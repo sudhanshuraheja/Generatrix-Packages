@@ -107,10 +107,18 @@
 						$data = json_decode($data, true);
 						$tags_list = isset($data['tags']) ? $data['tags'] : array();
 						$tags = array_keys($tags_list);
+						sort($tags);
 
 						$latest = false;
-						if(count($tags) > 0) {
-							$latest = $tags[count($tags) - 1];
+						foreach($tags as $tag) {
+							if( 
+								(strpos(strtolower($tag), 'beta') === false) &&
+								(strpos(strtolower($tag), 'rc1') === false) &&
+								(strpos(strtolower($tag), 'rc2') === false) &&
+								(strpos(strtolower($tag), 'pr') === false)
+							) {
+								$latest = $tag;
+							}
 						}
 
 						if(!$latest) {
